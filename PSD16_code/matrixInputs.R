@@ -108,13 +108,13 @@ newGenData = function(ramMatr, numObs, colNames = NULL){
   return(output)
 }
 
-#facData = newGenData(matHold, 50)
+facData = newGenData(matHold, 50)
 
-#dataList = list(data1 = facData$data[, c(1,3), drop = FALSE],
-#                data2 = facData$data[, c(2,4), drop = FALSE])
+dataList = list(data1 = facData$data[, c(1,3), drop = FALSE],
+                data2 = facData$data[, c(2,4), drop = FALSE])
 
 #partition = c(rep(1, 2), rep(2, 2))
-#partition = c(1, 2, 1, 2)
+partition = c(1, 2, 1, 2)
 
 
 #####
@@ -152,15 +152,15 @@ firstNodeExternalEst = function(inputSecret,inputShared){
   
   ##Log Likelihoods
   LL = matrix(NA,nrow=nrow(data),ncol=1)
+  tempInv = determinant(covSelf, log = TRUE) 
+  if(tempInv$sign <= 0) {
+    tempInv = -Inf 
+  }
+  else {
+    tempInv = tempInv$modulus
+    attributes(tempInv) = NULL
+  }
   for(i in 1:nrow(data)){
-    tempInv = determinant(covSelf, log=TRUE) 
-    if(tempInv$sign <= 0) {
-      tempInv = -Inf 
-    }
-      else {
-        tempInv = tempInv$modulus
-        attributes(tempInv) = NULL
-      }
     LL[i,] = ncol(data)*log(2*pi)+ tempInv +
       diffMean[i,, drop = F]%*%invSelf%*%t(diffMean[i,, drop = F])
   }
@@ -476,13 +476,15 @@ tempTime = proc.time()
     
   } else{
     estimatesOpenMx = NULL
+    mxTime = NULL
   }
   
   outputMatrix = cbind("Partitioned" = unlist(estimatesUser[1:attr(estimatesUser, "npar")]),
                        "Non-Partitioned" = estimatesNoPart,
                        "OpenMX-Non-Partitioned" = estimatesOpenMx)
   
-  return(list("results" = outputMatrix, "Time" = c("Partitioned" = outTime, "OpenMx" = mxTime)))
+  return(list("results" = outputMatrix, "Time" = c("Partitioned" = outTime, "OpenMx" = mxTime), 
+              "Hessian" = attr(estimatesUser, "details")["L-BFGS-B" ,"nhatend"]))
   
 }
 
@@ -491,12 +493,12 @@ tempTime = proc.time()
 ## test
 #####
 
-#test2 = newWrapFunc(matHold, partition, dataList, compareWithNoPart = T, noPartData = facData,
-#                    compareWithOpenMx = T)
-#test2
+test2 = newWrapFunc(matHold, partition, dataList, compareWithNoPart = T, noPartData = facData,
+                    compareWithOpenMx = T)
+test2
 
-#test = newWrapFunc(matHold, rep(1, 4), list(facData$data))
-#sumtest
+test = newWrapFunc(matHold, partition, dataList, hessian = F)
+test
 
 
 #test

@@ -2,7 +2,7 @@
 ## run
 #####
 
-source('~/Box Sync/Firewall Project/Code/matrixInputs.R')
+source('~/Box Sync/Firewall Project/Code/Firewall/matrixInputs.R')
 
 genRAMSimulationMatrices = function(p){
     matrA = mxMatrix("Full", nrow = (p + 3), ncol = (p + 3),
